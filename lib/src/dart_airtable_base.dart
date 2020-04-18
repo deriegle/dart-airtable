@@ -107,6 +107,43 @@ class Airtable {
     return AirtableRecord.fromJSON(body);
   }
 
+  Future<List<AirtableRecord>> updateRecords(
+      String recordName, List<AirtableRecord> records) async {
+    var requestBody = {
+      'records': records.map((record) => record.toJSON()).toList(),
+    };
+
+    var response = await client.post(
+      _recordApiUrl(recordName),
+      headers: {
+        'Authorization': 'Bearer $apiKey',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode(requestBody),
+    );
+
+    if (response.body == null ||
+        response.statusCode == HttpStatus.unprocessableEntity) {
+      return [];
+    }
+
+    Map<String, dynamic> body = jsonDecode(response.body);
+    if (body == null || body['error'] != null) {
+      return [];
+    }
+
+    final savedRecords = List<Map<String, dynamic>>.from(body['records']);
+
+    if (savedRecords == null || savedRecords.isEmpty) {
+      return [];
+    }
+
+    return savedRecords
+        .map<AirtableRecord>(
+            (Map<String, dynamic> record) => AirtableRecord.fromJSON(record))
+        .toList();
+  }
+
   String _recordApiUrl(String recordName) {
     return '$apiUrl/v0/$projectBase/$recordName';
   }

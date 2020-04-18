@@ -264,5 +264,78 @@ void main() {
         expect(savedRecord, isNull);
       });
     });
+
+    group('updateRecords', () {
+      test('it updates the records and returns the new records', () async {
+        airtable.client = MockClient((Request req) async {
+          var parsedBody = jsonDecode(req.body);
+          var requestRecords =
+              List<Map<String, dynamic>>.from(parsedBody['records']);
+
+          return Response(
+            jsonEncode({'records': requestRecords}),
+            200,
+          );
+        });
+
+        var record1 = AirtableRecord(
+          id: '12345',
+          createdTime: DateTime.now(),
+          fields: [
+            AirtableRecordField(fieldName: 'Name', value: 'Giant Eagle')
+          ],
+        );
+        var record2 = AirtableRecord(
+          id: 'abcdef',
+          createdTime: DateTime.now(),
+          fields: [
+            AirtableRecordField(fieldName: 'Name', value: 'Giant Eagle')
+          ],
+        );
+
+        record1.getField('Name').value = 'Kroger';
+
+        List<AirtableRecord> savedRecords =
+            await airtable.updateRecords('Transactions', [record1, record2]);
+
+        expect(savedRecords, hasLength(2));
+        expect(savedRecords.first, isA<AirtableRecord>());
+        expect(savedRecords.first.id, record1.id);
+        expect(savedRecords.first.createdTime, record1.createdTime);
+        expect(savedRecords.first.fields, hasLength(1));
+        expect(savedRecords.first.getField('Name').value, 'Kroger');
+
+        expect(savedRecords.last, isA<AirtableRecord>());
+        expect(savedRecords.last.id, record2.id);
+        expect(savedRecords.last.createdTime, record2.createdTime);
+        expect(savedRecords.last.fields, hasLength(1));
+        expect(savedRecords.last.getField('Name').value, 'Giant Eagle');
+      });
+
+      test('it handles errors', () async {
+        airtable.client = MockClient(
+          (Request req) async => Response(
+            jsonEncode({
+              'error': {
+                'type': 'INVALID_REQUEST_UNKNOWN',
+                'message':
+                    'Invalid Request: parameter validation failed. Check your request data.',
+              }
+            }),
+            422,
+          ),
+        );
+
+        var record = AirtableRecord(
+          id: '12345',
+          fields: [
+            AirtableRecordField(fieldName: 'Name', value: 'Giant Eagle'),
+          ],
+        );
+        var savedRecord = await airtable.createRecord('Transactions', record);
+
+        expect(savedRecord, isNull);
+      });
+    });
   });
 }

@@ -1,15 +1,21 @@
 import 'package:meta/meta.dart';
 
 class AirtableRecord {
-  String id;
-  DateTime createdTime = DateTime.now();
+  String _id;
+  DateTime _createdTime;
   List<AirtableRecordField> fields = [];
 
   AirtableRecord({
-    this.fields,
-    this.id,
-    this.createdTime,
-  });
+    @required this.fields,
+    String id,
+    DateTime createdTime,
+  }) {
+    _id = id;
+    _createdTime = createdTime;
+  }
+
+  String get id => _id;
+  DateTime get createdTime => _createdTime;
 
   AirtableRecordField getField(String fieldName) {
     return fields.firstWhere(
@@ -39,7 +45,9 @@ class AirtableRecord {
 
     return AirtableRecord(
       id: json['id'],
-      createdTime: DateTime.tryParse(json['createdTime']),
+      createdTime: json['createdTime'] != null
+          ? DateTime.tryParse(json['createdTime'])
+          : null,
       fields: fields.entries
           .map(
             (mapEntry) => AirtableRecordField(
