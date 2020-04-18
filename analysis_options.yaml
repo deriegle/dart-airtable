@@ -8,6 +8,9 @@ include: package:pedantic/analysis_options.yaml
 # linter:
 #   rules:
 #     - camel_case_types
+linter:
+  rules:
+    omit_local_variable_types: false
 
 analyzer:
 #   exclude:

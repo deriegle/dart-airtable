@@ -1,5 +1,4 @@
-import 'dart:html';
-
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'dart:convert' show jsonEncode, jsonDecode;
 import 'package:dart_airtable/src/airtable_record.dart';
@@ -48,13 +47,18 @@ class Airtable {
         .toList();
   }
 
+  Future<AirtableRecord> createRecord(
+      String recordName, AirtableRecord record) async {
+    var records = await createRecords(recordName, [record]);
+    return records == null || records.isEmpty ? null : records.first;
+  }
+
   Future<List<AirtableRecord>> createRecords(
       String recordName, List<AirtableRecord> records) async {
     var requestBody = {
       'records': records.map((record) => record.toJSON()).toList(),
     };
 
-    print(requestBody);
     var response = await client.post(
       _recordApiUrl(recordName),
       headers: {
@@ -64,25 +68,17 @@ class Airtable {
       body: jsonEncode(requestBody),
     );
 
-    // TODO: Check for errors
-    /*
-       {
-         "error": {
-           "type": "INVALID_REQUEST_UNKNOWN",
-           "message": "Invalid Request: paramter validation failed. Check your request data."
-         }
-       }
-     */
-
-    print(response.statusCode);
-    print(response.body);
-
-    Map<String, dynamic> body = jsonDecode(response.body);
-    if (body == null) {
+    if (response.body == null ||
+        response.statusCode == HttpStatus.unprocessableEntity) {
       return [];
     }
 
-    List<Map<String, dynamic>> savedRecords = body['records'];
+    Map<String, dynamic> body = jsonDecode(response.body);
+    if (body == null || body['error'] != null) {
+      return [];
+    }
+
+    final savedRecords = List<Map<String, dynamic>>.from(body['records']);
 
     if (savedRecords == null || savedRecords.isEmpty) {
       return [];

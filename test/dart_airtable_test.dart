@@ -1,8 +1,10 @@
+import 'dart:math';
+
 import 'package:dart_airtable/dart_airtable.dart';
 import 'package:http/http.dart';
 import 'package:http/testing.dart';
 import 'package:test/test.dart';
-import 'dart:convert' show jsonEncode;
+import 'dart:convert' show jsonEncode, jsonDecode;
 
 const MOCK_API_KEY = '1234';
 const MOCK_PROJECT_BASE = 'abcdefg';
@@ -125,6 +127,141 @@ void main() {
         expect(record.getField('Name').value, 'Giant Eagle');
         expect(record.getField('Amount').value, 25.35);
         expect(record.getField('Date of Transaction').value, isNotNull);
+      });
+    });
+
+    group('createRecords', () {
+      test('it creates the records and returns an id & createdTime for each',
+          () async {
+        airtable.client = MockClient((Request req) async {
+          var parsedBody = jsonDecode(req.body);
+          var requestRecords =
+              List<Map<String, dynamic>>.from(parsedBody['records']);
+          var random = Random();
+
+          return Response(
+            jsonEncode({
+              'records': requestRecords.map((Map<String, dynamic> record) {
+                record['id'] = random.nextInt(1000).toString();
+                record['createdTime'] = DateTime.now()
+                    .subtract(Duration(days: random.nextInt(10)))
+                    .toIso8601String();
+
+                return record;
+              }).toList(),
+            }),
+            200,
+          );
+        });
+
+        var record1 = AirtableRecord(fields: [
+          AirtableRecordField(fieldName: 'Name', value: 'Giant Eagle'),
+        ]);
+        var record2 = AirtableRecord(fields: [
+          AirtableRecordField(fieldName: 'Name', value: 'Kroger'),
+        ]);
+        var records =
+            await airtable.createRecords('Transactions', [record1, record2]);
+
+        expect(records, hasLength(2));
+        expect(records.first, isA<AirtableRecord>());
+        expect(records.first.id, isNotNull);
+        expect(records.first.fields, hasLength(1));
+        expect(records.first.getField('Name').value, 'Giant Eagle');
+
+        expect(records.last, isA<AirtableRecord>());
+        expect(records.last.id, isNotNull);
+        expect(records.last.fields, hasLength(1));
+        expect(records.last.getField('Name').value, 'Kroger');
+      });
+
+      test('it handles errors', () async {
+        airtable.client = MockClient(
+          (Request req) async => Response(
+            jsonEncode({
+              'error': {
+                'type': 'INVALID_REQUEST_UNKNOWN',
+                'message':
+                    'Invalid Request: parameter validation failed. Check your request data.',
+              }
+            }),
+            422,
+          ),
+        );
+
+        var record1 = AirtableRecord(
+          id: '12345',
+          fields: [
+            AirtableRecordField(fieldName: 'Name', value: 'Giant Eagle'),
+          ],
+        );
+        var records = await airtable.createRecords('Transactions', [record1]);
+
+        expect(records, isEmpty);
+      });
+    });
+
+    group('createRecord', () {
+      test(
+          'it creates the record and returns an id & createdTime for the record',
+          () async {
+        airtable.client = MockClient((Request req) async {
+          var parsedBody = jsonDecode(req.body);
+          var requestRecords =
+              List<Map<String, dynamic>>.from(parsedBody['records']);
+          var random = Random();
+
+          return Response(
+            jsonEncode({
+              'records': requestRecords.map((Map<String, dynamic> record) {
+                record['id'] = random.nextInt(1000).toString();
+                record['createdTime'] = DateTime.now()
+                    .subtract(Duration(days: random.nextInt(10)))
+                    .toIso8601String();
+
+                return record;
+              }).toList(),
+            }),
+            200,
+          );
+        });
+
+        var record = AirtableRecord(fields: [
+          AirtableRecordField(fieldName: 'Name', value: 'Giant Eagle'),
+        ]);
+        AirtableRecord savedRecord =
+            await airtable.createRecord('Transactions', record);
+
+        expect(savedRecord, isA<AirtableRecord>());
+        expect(savedRecord.id, isNotNull);
+        expect(savedRecord.createdTime, isNotNull);
+        expect(savedRecord.fields, hasLength(1));
+        expect(savedRecord.getField('Name').value, 'Giant Eagle');
+      });
+
+      test('it handles errors', () async {
+        airtable.client = MockClient(
+          (Request req) async => Response(
+            jsonEncode({
+              'error': {
+                'type': 'INVALID_REQUEST_UNKNOWN',
+                'message':
+                    'Invalid Request: parameter validation failed. Check your request data.',
+              }
+            }),
+            422,
+          ),
+        );
+
+        var record = AirtableRecord(
+          id: '12345',
+          fields: [
+            AirtableRecordField(fieldName: 'Name', value: 'Giant Eagle'),
+          ],
+        );
+        var savedRecord = await airtable.createRecord('Transactions', record);
+
+        expect(savedRecord, isNull);
       });
     });
   });
