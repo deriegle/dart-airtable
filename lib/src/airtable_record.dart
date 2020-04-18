@@ -11,6 +11,13 @@ class AirtableRecord {
     this.createdTime,
   });
 
+  AirtableRecordField getField(String fieldName) {
+    return fields.firstWhere(
+      (f) => f.fieldName == fieldName,
+      orElse: () => null,
+    );
+  }
+
   Map<String, dynamic> toJSON() {
     final Map<String, dynamic> json = {
       'fields': _jsonFields,
@@ -33,12 +40,14 @@ class AirtableRecord {
     return AirtableRecord(
       id: json['id'],
       createdTime: DateTime.tryParse(json['createdTime']),
-      fields: fields.entries.map(
-        (mapEntry) => AirtableRecordField(
-          fieldName: mapEntry.key,
-          value: mapEntry.value,
-        ),
-      ).toList(),
+      fields: fields.entries
+          .map(
+            (mapEntry) => AirtableRecordField(
+              fieldName: mapEntry.key,
+              value: mapEntry.value,
+            ),
+          )
+          .toList(),
     );
   }
 
@@ -50,7 +59,8 @@ class AirtableRecord {
   Map<String, dynamic> get _jsonFields {
     Map<String, dynamic> json = {};
 
-    json.addEntries(fields.map<MapEntry<String, dynamic>>((f) => f.toMapEntry()));
+    json.addEntries(
+        fields.map<MapEntry<String, dynamic>>((f) => f.toMapEntry()));
 
     return json;
   }
@@ -72,7 +82,6 @@ class AirtableRecordField<T> {
   MapEntry<String, dynamic> toMapEntry() {
     return MapEntry(fieldName, _valueToJSON);
   }
-
 
   String get _valueToJSON {
     if (value == null) {
