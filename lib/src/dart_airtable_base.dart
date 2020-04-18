@@ -1,3 +1,5 @@
+import 'dart:html';
+
 import 'package:http/http.dart' as http;
 import 'dart:convert' show jsonEncode, jsonDecode;
 import 'package:dart_airtable/src/airtable_record.dart';
@@ -98,12 +100,13 @@ class Airtable {
       'Authorization': 'Bearer $apiKey',
     });
 
-    Map<String, dynamic> body = jsonDecode(response.body);
-
-    // TODO: Return error if body is null
-    if (body == null) {
+    if (response.statusCode == HttpStatus.notFound ||
+        response.body == null ||
+        response.body.isEmpty) {
       return null;
     }
+
+    Map<String, dynamic> body = jsonDecode(response.body);
 
     return AirtableRecord.fromJSON(body);
   }

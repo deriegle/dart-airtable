@@ -85,5 +85,47 @@ void main() {
         expect(records.last.getField('Date of Transaction').value, isNotNull);
       });
     });
+
+    group('getRecord', () {
+      test('it returns null when the record is not found', () async {
+        airtable.client = MockClient(
+          (Request req) async => Response(
+            '',
+            404,
+          ),
+        );
+
+        expect(await airtable.getRecord('Transactions', '1234'), null);
+      });
+
+      test('it returns the expected record when the record exists', () async {
+        airtable.client = MockClient(
+          (Request req) async => Response(
+            jsonEncode({
+              'id': req.url.path.split('/').last,
+              'createdTime': DateTime.now().toIso8601String(),
+              'fields': {
+                'Name': 'Giant Eagle',
+                'Amount': 25.35,
+                'Date of Transaction': DateTime.now()
+                    .subtract(Duration(days: 2))
+                    .toIso8601String(),
+              },
+            }),
+            200,
+          ),
+        );
+
+        var record = await airtable.getRecord('Transactions', '1234');
+
+        expect(record, isNotNull);
+        expect(record, isA<AirtableRecord>());
+        expect(record.id, '1234');
+        expect(record.createdTime, isNotNull);
+        expect(record.getField('Name').value, 'Giant Eagle');
+        expect(record.getField('Amount').value, 25.35);
+        expect(record.getField('Date of Transaction').value, isNotNull);
+      });
+    });
   });
 }
