@@ -1,4 +1,5 @@
 import 'package:meta/meta.dart';
+import 'airtable_record_field.dart';
 
 class AirtableRecord {
   String _id;
@@ -71,35 +72,5 @@ class AirtableRecord {
         fields.map<MapEntry<String, dynamic>>((f) => f.toMapEntry()));
 
     return json;
-  }
-}
-
-class AirtableRecordField<T> {
-  String fieldName;
-  T value;
-
-  AirtableRecordField({
-    @required this.fieldName,
-    @required this.value,
-  });
-
-  Map<String, String> toJSON() {
-    return {fieldName: _valueToJSON};
-  }
-
-  MapEntry<String, dynamic> toMapEntry() {
-    return MapEntry(fieldName, _valueToJSON);
-  }
-
-  String get _valueToJSON {
-    if (value == null) {
-      return null;
-    }
-
-    if (T == DateTime) {
-      return (value as DateTime).toIso8601String();
-    }
-
-    return T == int || T == double ? value : value.toString();
   }
 }

@@ -1,9 +1,10 @@
-import 'dart:math';
-
 import 'package:dart_airtable/dart_airtable.dart';
+import 'package:dart_airtable/src/airtable_record_field.dart';
 import 'package:http/http.dart';
 import 'package:http/testing.dart';
 import 'package:test/test.dart';
+
+import 'dart:math';
 import 'dart:convert' show jsonEncode, jsonDecode;
 
 const MOCK_API_KEY = '1234';
