@@ -6,15 +6,15 @@ class AirtableRecord {
   List<AirtableRecordField> fields = [];
 
   AirtableRecord({
-    @required this.id,
-    @required this.createdTime,
-    @required this.fields,
+    this.fields,
+    this.id,
+    this.createdTime,
   });
 
   Map<String, dynamic> toJSON() {
     return {
       'id': id,
-      'createdTime': createdTime.toIso8601String(),
+      'createdTime': createdTime?.toIso8601String(),
       'fields': _jsonFields,
     };
   }
@@ -36,11 +36,14 @@ class AirtableRecord {
 
   @override
   String toString() {
-    return 'AirtableRecord(id: $id, createdTime: ${createdTime.toString()}, fields: ${_jsonFields.toString()}';
+    return 'AirtableRecord(id: $id, createdTime: ${createdTime.toString()}, fields: ${_jsonFields.toString()})';
   }
 
   Map<String, dynamic> get _jsonFields {
     Map<String, dynamic> json = {};
+
+    for (var field in fields) {
+    }
 
     fields.forEach((field) => json[field.fieldName] = field.value);
 
@@ -48,24 +51,28 @@ class AirtableRecord {
   }
 }
 
-class AirtableRecordField {
+class AirtableRecordField<T> {
   String fieldName;
-  dynamic value;
+  T value;
 
   AirtableRecordField({
     @required this.fieldName,
     @required this.value,
   });
 
-  Map<String, dynamic> toJSON() {
+  Map<String, String> toJSON() {
     return {fieldName: _valueToJSON};
   }
 
-  dynamic get _valueToJSON {
-    if (value is DateTime) {
+  String get _valueToJSON {
+    if (value == null) {
+      return null;
+    }
+
+    if (T == DateTime) {
       return (value as DateTime).toIso8601String();
     }
 
-    return value;
+    return value.toString();
   }
 }

@@ -4,5 +4,6 @@
 library dart_airtable;
 
 export 'src/dart_airtable_base.dart';
+export 'src/airtable_record.dart';
 
 // TODO: Export any libraries intended for clients of this package.

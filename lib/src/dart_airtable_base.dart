@@ -31,6 +31,44 @@ class Airtable {
     return records.map<AirtableRecord>((Map<String, dynamic> record) => AirtableRecord.fromJSON(record)).toList();
   }
 
+  Future<List<AirtableRecord>> createRecords(String recordName, List<AirtableRecord> records) async {
+    var response = await http.post(_recordApiUrl(recordName),
+      headers: {
+        'Authorization': 'Bearer $_apiKey',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'records': records.map((record) => record.toJSON()).toList(),
+      }),
+    );
+
+    Map<String, dynamic> body = jsonDecode(response.body);
+    if (body == null) { return []; }
+
+    List<Map<String, dynamic>> savedRecords = body['records'];
+
+    if (savedRecords == null || savedRecords.isEmpty) {
+      return [];
+    }
+
+    return savedRecords
+        .map<AirtableRecord>((Map<String, dynamic> record) => AirtableRecord.fromJSON(record))
+        .toList();
+  }
+
+  Future<AirtableRecord> getRecord(String recordName, String recordId) async {
+    var response = await http.get('${_recordApiUrl(recordName)}/$recordId', headers: {
+      'Authorization': 'Bearer $_apiKey',
+    });
+
+    Map<String, dynamic> body = jsonDecode(response.body);
+
+    // TODO: Return error if body is null
+    if (body == null) { return null; }
+
+    return AirtableRecord.fromJSON(body);
+  }
+
   String _recordApiUrl(String recordName) {
     return '$apiUrl/v0/$_projectBase/$recordName';
   }
