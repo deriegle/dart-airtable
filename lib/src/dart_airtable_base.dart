@@ -32,15 +32,32 @@ class Airtable {
   }
 
   Future<List<AirtableRecord>> createRecords(String recordName, List<AirtableRecord> records) async {
+    var requestBody = {
+        'records': records.map((record) => record.toJSON()).toList(),
+      };
+
+    print(requestBody);
     var response = await http.post(_recordApiUrl(recordName),
       headers: {
         'Authorization': 'Bearer $_apiKey',
         'Content-Type': 'application/json',
       },
-      body: jsonEncode({
-        'records': records.map((record) => record.toJSON()).toList(),
-      }),
+      body: jsonEncode(requestBody),
     );
+
+
+    // TODO: Check for errors
+    /*
+       {
+         "error": {
+           "type": "INVALID_REQUEST_UNKNOWN",
+           "message": "Invalid Request: paramter validation failed. Check your request data."
+         }
+       }
+     */
+
+    print(response.statusCode);
+    print(response.body);
 
     Map<String, dynamic> body = jsonDecode(response.body);
     if (body == null) { return []; }

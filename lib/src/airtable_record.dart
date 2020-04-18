@@ -12,11 +12,19 @@ class AirtableRecord {
   });
 
   Map<String, dynamic> toJSON() {
-    return {
-      'id': id,
-      'createdTime': createdTime?.toIso8601String(),
+    final Map<String, dynamic> json = {
       'fields': _jsonFields,
     };
+
+    if (id != null) {
+      json['id'] = id;
+    }
+
+    if (createdTime != null) {
+      json['createdTime'] = createdTime.toIso8601String();
+    }
+
+    return json;
   }
 
   factory AirtableRecord.fromJSON(Map<String, dynamic> json) {
@@ -42,10 +50,7 @@ class AirtableRecord {
   Map<String, dynamic> get _jsonFields {
     Map<String, dynamic> json = {};
 
-    for (var field in fields) {
-    }
-
-    fields.forEach((field) => json[field.fieldName] = field.value);
+    json.addEntries(fields.map<MapEntry<String, dynamic>>((f) => f.toMapEntry()));
 
     return json;
   }
@@ -64,6 +69,11 @@ class AirtableRecordField<T> {
     return {fieldName: _valueToJSON};
   }
 
+  MapEntry<String, dynamic> toMapEntry() {
+    return MapEntry(fieldName, _valueToJSON);
+  }
+
+
   String get _valueToJSON {
     if (value == null) {
       return null;
@@ -73,6 +83,6 @@ class AirtableRecordField<T> {
       return (value as DateTime).toIso8601String();
     }
 
-    return value.toString();
+    return T == int || T == double ? value : value.toString();
   }
 }
