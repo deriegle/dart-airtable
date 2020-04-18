@@ -10,9 +10,13 @@ class Airtable {
   final String _apiKey;
   final String _projectBase;
   final String apiUrl;
+  final http.Client client;
 
-  Airtable(this._apiKey, this._projectBase, { this.apiUrl = _defaultAirtableApiUrl })
-      : assert(_apiKey != null && _projectBase != null && apiUrl != null);
+  Airtable(this._apiKey, this._projectBase, {
+    this.apiUrl = _defaultAirtableApiUrl,
+    this.client = http.Client(),
+  })
+      : assert(_apiKey != null && _projectBase != null && apiUrl != null)
 
   Future<List<AirtableRecord>> getAllRecords(String recordName, {int maxRecords, int pageSize}) async {
     var response = await http.get(_recordApiUrl(recordName), headers: {
