@@ -33,8 +33,6 @@ class Airtable {
       return [];
     }
 
-    print(body);
-
     var records = List<Map<String, dynamic>>.from(body['records']);
 
     if (records == null || records.isEmpty) {
@@ -113,7 +111,7 @@ class Airtable {
       'records': records.map((record) => record.toJSON()).toList(),
     };
 
-    var response = await client.post(
+    var response = await client.patch(
       _recordApiUrl(recordName),
       headers: {
         'Authorization': 'Bearer $apiKey',
@@ -144,7 +142,44 @@ class Airtable {
         .toList();
   }
 
-  String _recordApiUrl(String recordName) {
-    return '$apiUrl/v0/$projectBase/$recordName';
+  Future<AirtableRecord> updateRecord(
+      String recordName, AirtableRecord record) async {
+    var records = await updateRecords(recordName, [record]);
+    return records == null || records.isEmpty ? null : records.first;
+  }
+
+  Future<List<String>> deleteRecords(
+      String recordName, List<AirtableRecord> records) async {
+    var response = await client.delete(
+      _recordApiUrl(recordName, {
+        'records':
+            jsonEncode(records.map<String>((record) => record.id).toList())
+      }),
+      headers: {
+        'Authorization': 'Bearer $apiKey',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.body == null) {
+      return [];
+    }
+
+    Map<String, dynamic> body = jsonDecode(response.body);
+    if (body == null || body['error'] != null) {
+      return [];
+    }
+
+    final resultRecords = List<Map<String, dynamic>>.from(body['records']);
+
+    return resultRecords
+        .where((record) => record['deleted'] == true)
+        .map<String>((record) => record['id'])
+        .toList();
+  }
+
+  Uri _recordApiUrl(String recordName, [Map<String, String> queryParams]) {
+    var url = apiUrl.replaceAll(RegExp('^https?:\/\/'), '');
+    return Uri.https(url, '/v0/${projectBase}/${recordName}', queryParams);
   }
 }

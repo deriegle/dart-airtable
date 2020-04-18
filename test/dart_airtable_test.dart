@@ -101,8 +101,8 @@ void main() {
       });
 
       test('it returns the expected record when the record exists', () async {
-        airtable.client = MockClient(
-          (Request req) async => Response(
+        airtable.client = MockClient((Request req) async {
+          return Response(
             jsonEncode({
               'id': req.url.path.split('/').last,
               'createdTime': DateTime.now().toIso8601String(),
@@ -115,8 +115,8 @@ void main() {
               },
             }),
             200,
-          ),
-        );
+          );
+        });
 
         var record = await airtable.getRecord('Transactions', '1234');
 
@@ -272,6 +272,8 @@ void main() {
           var requestRecords =
               List<Map<String, dynamic>>.from(parsedBody['records']);
 
+          expect(req.method, 'PATCH');
+
           return Response(
             jsonEncode({'records': requestRecords}),
             200,
@@ -295,21 +297,20 @@ void main() {
 
         record1.getField('Name').value = 'Kroger';
 
-        List<AirtableRecord> savedRecords =
+        List<AirtableRecord> updatedRecords =
             await airtable.updateRecords('Transactions', [record1, record2]);
 
-        expect(savedRecords, hasLength(2));
-        expect(savedRecords.first, isA<AirtableRecord>());
-        expect(savedRecords.first.id, record1.id);
-        expect(savedRecords.first.createdTime, record1.createdTime);
-        expect(savedRecords.first.fields, hasLength(1));
-        expect(savedRecords.first.getField('Name').value, 'Kroger');
-
-        expect(savedRecords.last, isA<AirtableRecord>());
-        expect(savedRecords.last.id, record2.id);
-        expect(savedRecords.last.createdTime, record2.createdTime);
-        expect(savedRecords.last.fields, hasLength(1));
-        expect(savedRecords.last.getField('Name').value, 'Giant Eagle');
+        expect(updatedRecords, hasLength(2));
+        expect(updatedRecords.first, isA<AirtableRecord>());
+        expect(updatedRecords.first.id, record1.id);
+        expect(updatedRecords.first.createdTime, record1.createdTime);
+        expect(updatedRecords.first.fields, hasLength(1));
+        expect(updatedRecords.first.getField('Name').value, 'Kroger');
+        expect(updatedRecords.last, isA<AirtableRecord>());
+        expect(updatedRecords.last.id, record2.id);
+        expect(updatedRecords.last.createdTime, record2.createdTime);
+        expect(updatedRecords.last.fields, hasLength(1));
+        expect(updatedRecords.last.getField('Name').value, 'Giant Eagle');
       });
 
       test('it handles errors', () async {
@@ -326,15 +327,76 @@ void main() {
           ),
         );
 
-        var record = AirtableRecord(
+        var record1 = AirtableRecord(
           id: '12345',
           fields: [
             AirtableRecordField(fieldName: 'Name', value: 'Giant Eagle'),
           ],
         );
-        var savedRecord = await airtable.createRecord('Transactions', record);
+        var updatedRecords =
+            await airtable.updateRecords('Transactions', [record1]);
 
-        expect(savedRecord, isNull);
+        expect(updatedRecords, isEmpty);
+      });
+    });
+
+    group('deleteRecords', () {
+      test('it deletes the given records', () async {
+        airtable.client = MockClient((Request req) async {
+          List<String> recordIds =
+              List<String>.from(jsonDecode(req.url.queryParameters['records']));
+          expect(req.method, 'DELETE');
+
+          return Response(
+            jsonEncode({
+              'records': recordIds.map<Map<String, dynamic>>((recordId) {
+                return {
+                  'id': recordId,
+                  'deleted': true,
+                };
+              }).toList(),
+            }),
+            200,
+          );
+        });
+
+        var record1 = AirtableRecord(id: '12345', fields: []);
+        var record2 = AirtableRecord(id: 'abcdef', fields: []);
+
+        List<String> deletedRecords =
+            await airtable.deleteRecords('Transactions', [record1, record2]);
+
+        expect(deletedRecords, hasLength(2));
+        expect(deletedRecords, contains(record1.id));
+        expect(deletedRecords, contains(record2.id));
+      });
+
+      test('it only returns ids of the delete records', () async {
+        airtable.client = MockClient((Request req) async {
+          List<String> recordIds =
+              List<String>.from(jsonDecode(req.url.queryParameters['records']));
+          expect(req.method, 'DELETE');
+
+          return Response(
+            jsonEncode({
+              'records': recordIds.map<Map<String, dynamic>>((recordId) {
+                return {
+                  'id': recordId,
+                  'deleted': false,
+                };
+              }).toList(),
+            }),
+            200,
+          );
+        });
+
+        var record1 = AirtableRecord(id: '12345', fields: []);
+        var record2 = AirtableRecord(id: 'abcdef', fields: []);
+
+        List<String> deletedRecords =
+            await airtable.deleteRecords('Transactions', [record1, record2]);
+
+        expect(deletedRecords, isEmpty);
       });
     });
   });
