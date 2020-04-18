@@ -6,7 +6,6 @@ import 'package:meta/meta.dart';
 
 const _defaultAirtableApiUrl = 'https://api.airtable.com';
 
-/// Checks if you are awesome. Spoiler: you are.
 class Airtable {
   final String apiKey;
   final String projectBase;

@@ -5,11 +5,12 @@ homepage: https://www.github.com/deriegle/dart-airtable
 author: Devin Riegle <riegledevin@gmail.com>
 
 environment:
-  sdk: '>=2.5.0 <3.0.0'
+  sdk: ">=2.5.0 <3.0.0"
 
 dependencies:
   http: any
 
 dev_dependencies:
+  dotenv: ^2.0.0
   pedantic: ^1.8.0
   test: ^1.6.0
