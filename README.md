@@ -1,7 +1,6 @@
-A library for Dart developers.
+# Dart Airtable
 
-Created from templates made available by Stagehand under a BSD-style
-[license](https://github.com/dart-lang/stagehand/blob/master/LICENSE).
+A library for using the Airtable API in Dart & Flutter applications
 
 ## Usage
 
@@ -10,13 +9,36 @@ A simple usage example:
 ```dart
 import 'package:dart_airtable/dart_airtable.dart';
 
-main() {
-  var awesome = new Awesome();
+void main() async {
+  final apiKey = 'my-airtable-api-key'
+  final projectBase = 'my-airtable-project-base';
+  final recordName = 'Tasks';
+
+  var airtable = Airtable(apiKey: apiKey, projectBase: projectBase);
+  var records = await airtable.getAllRecords(recordName);
+
+  print(records);
 }
+```
+
+## Running the example
+
+1. Create a `.env` file
+
+```bash
+cp .env.example .env
+```
+
+2. Fill in your API Key, Project base key and Record Name in the `.env` file
+
+3. Run the dart file
+
+```bash
+dart example/dart_airtable_example.dart
 ```
 
 ## Features and bugs
 
 Please file feature requests and bugs at the [issue tracker][tracker].
 
-[tracker]: http://example.com/issues/replaceme
+[tracker]: http://github.com/deriegle/dart-airtable/issues
