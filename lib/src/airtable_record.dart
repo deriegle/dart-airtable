@@ -1,60 +1,37 @@
 part of dart_airtable;
 
 class AirtableRecord {
-  String _id;
-  DateTime _createdTime;
+  final String id;
+  final DateTime createdTime;
   List<AirtableRecordField> fields = [];
 
   AirtableRecord({
     @required this.fields,
-    String id,
-    DateTime createdTime,
-  }) {
-    _id = id;
-    _createdTime = createdTime;
-  }
+    this.createdTime,
+    this.id,
+  });
 
-  String get id => _id;
-  DateTime get createdTime => _createdTime;
-
-  AirtableRecordField getField(String fieldName) {
-    return fields.firstWhere(
-      (f) => f.fieldName == fieldName,
-      orElse: () => null,
-    );
-  }
+  AirtableRecordField getField(String fieldName) => fields.firstWhere(
+        (f) => f.fieldName == fieldName,
+        orElse: () => null,
+      );
 
   Map<String, dynamic> toJSON() {
-    final Map<String, dynamic> json = {
+    return <String, dynamic>{
       'fields': _jsonFields,
+      'id': id,
+      'createdTime': createdTime?.toIso8601String(),
     };
-
-    if (id != null) {
-      json['id'] = id;
-    }
-
-    if (createdTime != null) {
-      json['createdTime'] = createdTime.toIso8601String();
-    }
-
-    return json;
   }
 
   factory AirtableRecord.fromJSON(Map<String, dynamic> json) {
-    var fields = Map.from(json['fields']);
+    final fields = Map.from(json['fields']);
 
     return AirtableRecord(
       id: json['id'],
-      createdTime: json['createdTime'] != null
-          ? DateTime.tryParse(json['createdTime'])
-          : null,
+      createdTime: DateTime.tryParse(json['createdTime']),
       fields: fields.entries
-          .map(
-            (mapEntry) => AirtableRecordField(
-              fieldName: mapEntry.key,
-              value: mapEntry.value,
-            ),
-          )
+          .map((e) => AirtableRecordField.fromMapEntry(e))
           .toList(),
     );
   }
@@ -65,11 +42,8 @@ class AirtableRecord {
   }
 
   Map<String, dynamic> get _jsonFields {
-    Map<String, dynamic> json = {};
-
-    json.addEntries(
-        fields.map<MapEntry<String, dynamic>>((f) => f.toMapEntry()));
-
-    return json;
+    return {}..addEntries(
+        fields.map<MapEntry<String, dynamic>>((f) => f.toMapEntry()).toList(),
+      );
   }
 }

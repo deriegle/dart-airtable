@@ -7,25 +7,28 @@ class AirtableRecordField<T> {
   AirtableRecordField({
     @required this.fieldName,
     @required this.value,
-  });
+  }) : assert(value.runtimeType != T);
 
-  Map<String, String> toJSON() {
-    return {fieldName: _valueToJSON};
-  }
+  Map<String, String> toJSON() => {fieldName: _valueToJSON};
 
-  MapEntry<String, dynamic> toMapEntry() {
-    return MapEntry(fieldName, _valueToJSON);
-  }
+  MapEntry<String, dynamic> toMapEntry() => MapEntry(fieldName, _valueToJSON);
+
+  factory AirtableRecordField.fromMapEntry(
+          MapEntry<dynamic, dynamic> mapEntry) =>
+      AirtableRecordField(
+        fieldName: mapEntry.key,
+        value: mapEntry.value,
+      );
 
   String get _valueToJSON {
-    if (value == null) {
-      return null;
+    if (value.runtimeType == DateTime) {
+      return (value as DateTime)?.toIso8601String();
     }
 
-    if (T == DateTime) {
-      return (value as DateTime).toIso8601String();
-    }
-
-    return T == int || T == double ? value : value.toString();
+    return value?.toString();
   }
+}
+
+void hi() {
+  AirtableRecordField<dynamic>.fromMapEntry(MapEntry('hi', 'hi'));
 }

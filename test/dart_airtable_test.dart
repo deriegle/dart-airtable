@@ -154,13 +154,16 @@ void main() {
           );
         });
 
-        var record1 = AirtableRecord(fields: [
-          AirtableRecordField(fieldName: 'Name', value: 'Giant Eagle'),
-        ]);
-        var record2 = AirtableRecord(fields: [
-          AirtableRecordField(fieldName: 'Name', value: 'Kroger'),
-        ]);
-        var records =
+        final record1 = AirtableRecord(
+          fields: [
+            AirtableRecordField(fieldName: 'Name', value: 'Giant Eagle')
+          ],
+        );
+        final record2 = AirtableRecord(
+          fields: [AirtableRecordField(fieldName: 'Name', value: 'Kroger')],
+        );
+
+        final records =
             await airtable.createRecords('Transactions', [record1, record2]);
 
         expect(records, hasLength(2));

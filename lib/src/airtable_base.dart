@@ -12,23 +12,29 @@ class Airtable {
     @required this.apiKey,
     @required this.projectBase,
     this.apiUrl = _defaultAirtableApiUrl,
-    this.client,
-  }) : assert(apiUrl != null) {
-    client = client ?? http.Client();
-  }
+    http.Client client,
+  })  : client = client ?? http.Client(),
+        assert(apiUrl != null);
 
-  Future<List<AirtableRecord>> getAllRecords(String recordName,
-      {int maxRecords, int pageSize}) async {
-    var response = await client.get(_recordApiUrl(recordName), headers: {
-      'Authorization': 'Bearer $apiKey',
-    });
+  /// Gets a List of AirtableRecords from Airtable based on the record name
+  ///
+  /// [Returns List of updated records]
+  Future<List<AirtableRecord>> getAllRecords(
+    String recordName, {
+    int maxRecords,
+    int pageSize,
+  }) async {
+    final response = await client.get(
+      _recordApiUrl(recordName),
+      headers: _headers,
+    );
 
     Map<String, dynamic> body = jsonDecode(response.body);
     if (body == null) {
       return [];
     }
 
-    var records = List<Map<String, dynamic>>.from(body['records']);
+    final records = List<Map<String, dynamic>>.from(body['records']);
 
     if (records == null || records.isEmpty) {
       return [];
@@ -40,25 +46,30 @@ class Airtable {
         .toList();
   }
 
+  /// Creates a new AirtableRecord in Airtable based on a given AirtableRecord
+  ///
+  /// [Returns AirtableRecord with ids when successful]
+  /// [Returns null when unsuccessful]
   Future<AirtableRecord> createRecord(
-      String recordName, AirtableRecord record) async {
-    var records = await createRecords(recordName, [record]);
+    String recordName,
+    AirtableRecord record,
+  ) async {
+    final records = await createRecords(recordName, [record]);
     return records == null || records.isEmpty ? null : records.first;
   }
 
+  /// Creates multiple records in Airtable using a list of AirtableRecord instances
+  ///
   Future<List<AirtableRecord>> createRecords(
-      String recordName, List<AirtableRecord> records) async {
-    var requestBody = {
-      'records': records.map((record) => record.toJSON()).toList(),
-    };
+    String recordName,
+    List<AirtableRecord> records,
+  ) async {
+    final body = {'records': records.map((record) => record.toJSON()).toList()};
 
-    var response = await client.post(
+    final response = await client.post(
       _recordApiUrl(recordName),
-      headers: {
-        'Authorization': 'Bearer $apiKey',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode(requestBody),
+      headers: _headers,
+      body: jsonEncode(body),
     );
 
     if (response.body == null ||
@@ -66,12 +77,13 @@ class Airtable {
       return [];
     }
 
-    Map<String, dynamic> body = jsonDecode(response.body);
-    if (body == null || body['error'] != null) {
+    Map<String, dynamic> responseBody = jsonDecode(response.body);
+    if (responseBody == null || responseBody['error'] != null) {
       return [];
     }
 
-    final savedRecords = List<Map<String, dynamic>>.from(body['records']);
+    final savedRecords =
+        List<Map<String, dynamic>>.from(responseBody['records']);
 
     if (savedRecords == null || savedRecords.isEmpty) {
       return [];
@@ -83,11 +95,12 @@ class Airtable {
         .toList();
   }
 
+  /// Gets a single record based on the record name and ID from Airtable
+  ///
+  /// [Returns nullable Future]
   Future<AirtableRecord> getRecord(String recordName, String recordId) async {
-    var response =
-        await client.get('${_recordApiUrl(recordName)}/$recordId', headers: {
-      'Authorization': 'Bearer $apiKey',
-    });
+    final response = await client.get('${_recordApiUrl(recordName)}/$recordId',
+        headers: _headers);
 
     if (response.statusCode == HttpStatus.notFound ||
         response.body == null ||
@@ -100,19 +113,21 @@ class Airtable {
     return AirtableRecord.fromJSON(body);
   }
 
+  /// Returns a list of updated AirtableRecords
+  ///
+  /// [Returns empty if update is not successful]
   Future<List<AirtableRecord>> updateRecords(
-      String recordName, List<AirtableRecord> records) async {
-    var requestBody = {
+    String recordName,
+    List<AirtableRecord> records,
+  ) async {
+    final body = {
       'records': records.map((record) => record.toJSON()).toList(),
     };
 
-    var response = await client.patch(
+    final response = await client.patch(
       _recordApiUrl(recordName),
-      headers: {
-        'Authorization': 'Bearer $apiKey',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode(requestBody),
+      headers: _headers,
+      body: jsonEncode(body),
     );
 
     if (response.body == null ||
@@ -120,12 +135,13 @@ class Airtable {
       return [];
     }
 
-    Map<String, dynamic> body = jsonDecode(response.body);
-    if (body == null || body['error'] != null) {
+    Map<String, dynamic> responseBody = jsonDecode(response.body);
+    if (responseBody == null || responseBody['error'] != null) {
       return [];
     }
 
-    final savedRecords = List<Map<String, dynamic>>.from(body['records']);
+    final savedRecords =
+        List<Map<String, dynamic>>.from(responseBody['records']);
 
     if (savedRecords == null || savedRecords.isEmpty) {
       return [];
@@ -137,23 +153,26 @@ class Airtable {
         .toList();
   }
 
+  /// Updates a single AirtableRecord
+  ///
+  /// [Returns null if unsuccessful]
   Future<AirtableRecord> updateRecord(
       String recordName, AirtableRecord record) async {
-    var records = await updateRecords(recordName, [record]);
+    final records = await updateRecords(recordName, [record]);
     return records == null || records.isEmpty ? null : records.first;
   }
 
+  /// Deletes a list of AirtableRecords
+  ///
+  /// [Returns List of ids]
   Future<List<String>> deleteRecords(
       String recordName, List<AirtableRecord> records) async {
-    var response = await client.delete(
+    final response = await client.delete(
       _recordApiUrl(recordName, {
         'records':
             jsonEncode(records.map<String>((record) => record.id).toList())
       }),
-      headers: {
-        'Authorization': 'Bearer $apiKey',
-        'Content-Type': 'application/json',
-      },
+      headers: _headers,
     );
 
     if (response.body == null) {
@@ -177,4 +196,9 @@ class Airtable {
     var url = apiUrl.replaceAll(RegExp('^https?:\/\/'), '');
     return Uri.https(url, '/v0/${projectBase}/${recordName}', queryParams);
   }
+
+  Map<String, String> get _headers => {
+        'Authorization': 'Bearer $apiKey',
+        'Content-Type': 'application/json',
+      };
 }
