@@ -1,4 +1,4 @@
-import 'package:meta/meta.dart';
+part of dart_airtable;
 
 class AirtableRecordField<T> {
   String fieldName;

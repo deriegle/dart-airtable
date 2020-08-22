@@ -1,8 +1,4 @@
-import 'dart:io';
-import 'package:http/http.dart' as http;
-import 'dart:convert' show jsonEncode, jsonDecode;
-import 'package:dart_airtable/src/airtable_record.dart';
-import 'package:meta/meta.dart';
+part of dart_airtable;
 
 const _defaultAirtableApiUrl = 'https://api.airtable.com';
 

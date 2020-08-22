@@ -1,5 +1,4 @@
 import 'package:dart_airtable/dart_airtable.dart';
-import 'package:dart_airtable/src/airtable_record_field.dart';
 import 'package:http/http.dart';
 import 'package:http/testing.dart';
 import 'package:test/test.dart';

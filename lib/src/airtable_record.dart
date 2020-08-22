@@ -1,5 +1,4 @@
-import 'package:meta/meta.dart';
-import 'airtable_record_field.dart';
+part of dart_airtable;
 
 class AirtableRecord {
   String _id;
