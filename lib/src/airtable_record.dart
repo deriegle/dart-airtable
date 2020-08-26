@@ -17,11 +17,16 @@ class AirtableRecord {
       );
 
   Map<String, dynamic> toJSON() {
-    return <String, dynamic>{
-      'fields': _jsonFields,
-      'id': id,
-      'createdTime': createdTime?.toIso8601String(),
-    };
+    if (id == null) {
+      return <String, dynamic>{
+        'fields': _jsonFields,
+      };
+    } else {
+      return <String, dynamic>{
+        'fields': _jsonFields,
+        'id': id,
+      };
+    }
   }
 
   factory AirtableRecord.fromJSON(Map<String, dynamic> json) {
