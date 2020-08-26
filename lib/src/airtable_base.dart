@@ -167,11 +167,13 @@ class Airtable {
   /// [Returns List of ids]
   Future<List<String>> deleteRecords(
       String recordName, List<AirtableRecord> records) async {
+    final params = Map.fromIterable(
+      records,
+      key: (record) => 'records[]',
+      value: (record) => record.id as String,
+    );
     final response = await client.delete(
-      _recordApiUrl(recordName, {
-        'records':
-            jsonEncode(records.map<String>((record) => record.id).toList())
-      }),
+      _recordApiUrl(recordName, params),
       headers: _headers,
     );
 
