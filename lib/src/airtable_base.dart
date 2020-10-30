@@ -122,9 +122,11 @@ class Airtable {
   Future<List<AirtableRecord>> updateRecords(
     String recordName,
     List<AirtableRecord> records,
+    {bool typecast = false},
   ) async {
     final body = {
       'records': records.map((record) => record.toJSON()).toList(),
+      'typecast': typecast,
     };
 
     final response = await client.patch(
@@ -160,8 +162,8 @@ class Airtable {
   ///
   /// [Returns null if unsuccessful]
   Future<AirtableRecord> updateRecord(
-      String recordName, AirtableRecord record) async {
-    final records = await updateRecords(recordName, [record]);
+      String recordName, AirtableRecord record, {bool typecast = false},) async {
+    final records = await updateRecords(recordName, [record], typecast: typecast,);
     return records == null || records.isEmpty ? null : records.first;
   }
 
