@@ -73,8 +73,6 @@ class Airtable {
       body: jsonEncode(body),
     );
 
-    print(response.body);
-
     if (response.body == null ||
         response.statusCode == HttpStatus.unprocessableEntity) {
       return [];

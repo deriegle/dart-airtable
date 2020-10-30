@@ -1,3 +1,11 @@
+### 0.1.2
+
+- Fixed bug in create and update serialization
+- Added typecast parameter to createRecord and updateRecord methods
+
+Thank you to [@magnussp](https://github.com/magnussp) and [@ekwus](https://github.com/ekwus) for their
+contributions!
+
 ### 0.1.1
 
 - Cleaned up code
