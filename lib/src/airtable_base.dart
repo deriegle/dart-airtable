@@ -50,27 +50,30 @@ class Airtable {
   ///
   /// [Returns AirtableRecord with ids when successful]
   /// [Returns null when unsuccessful]
-  Future<AirtableRecord> createRecord(
-    String recordName,
-    AirtableRecord record,
-  ) async {
-    final records = await createRecords(recordName, [record]);
+  Future<AirtableRecord> createRecord(String recordName, AirtableRecord record,
+      {bool typecast = false}) async {
+    final records =
+        await createRecords(recordName, [record], typecast: typecast);
     return records == null || records.isEmpty ? null : records.first;
   }
 
   /// Creates multiple records in Airtable using a list of AirtableRecord instances
   ///
   Future<List<AirtableRecord>> createRecords(
-    String recordName,
-    List<AirtableRecord> records,
-  ) async {
-    final body = {'records': records.map((record) => record.toJSON()).toList()};
+      String recordName, List<AirtableRecord> records,
+      {bool typecast = false}) async {
+    final body = {
+      'records': records.map((record) => record.toJSON()).toList(),
+      'typecast': typecast,
+    };
 
     final response = await client.post(
       _recordApiUrl(recordName),
       headers: _headers,
       body: jsonEncode(body),
     );
+
+    print(response.body);
 
     if (response.body == null ||
         response.statusCode == HttpStatus.unprocessableEntity) {
@@ -117,11 +120,11 @@ class Airtable {
   ///
   /// [Returns empty if update is not successful]
   Future<List<AirtableRecord>> updateRecords(
-    String recordName,
-    List<AirtableRecord> records,
-  ) async {
+      String recordName, List<AirtableRecord> records,
+      {bool typecast = false}) async {
     final body = {
       'records': records.map((record) => record.toJSON()).toList(),
+      'typecast': typecast,
     };
 
     final response = await client.patch(
@@ -156,9 +159,13 @@ class Airtable {
   /// Updates a single AirtableRecord
   ///
   /// [Returns null if unsuccessful]
-  Future<AirtableRecord> updateRecord(
-      String recordName, AirtableRecord record) async {
-    final records = await updateRecords(recordName, [record]);
+  Future<AirtableRecord> updateRecord(String recordName, AirtableRecord record,
+      {bool typecast = false}) async {
+    final records = await updateRecords(
+      recordName,
+      [record],
+      typecast: typecast,
+    );
     return records == null || records.isEmpty ? null : records.first;
   }
 
