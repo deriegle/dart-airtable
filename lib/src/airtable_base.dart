@@ -114,6 +114,19 @@ class Airtable {
     return AirtableRecord.fromJSON(body);
   }
 
+  /// Get records based on the filtering formula supplied as defined by [Airtable API](https://support.airtable.com/hc/en-us/articles/203255215-Formula-Field-Reference)
+  /// 
+  /// [Returns Future or throws exception]
+  Future<List<AirtableRecord>> getRecordsFilterByFormula(String recordName, String filter) async {
+    final response = await client.get('${_recordApiUrl(recordName)}?filterByFormula=$filter', headers: _headers);
+
+    Map<String, dynamic> responseJson = jsonDecode(response.body);
+    if(responseJson.containsKey('error')) throw Exception("${responseJson['error']['type']}::${responseJson['error']['message']}");
+    if(!responseJson.containsKey('records')) throw Exception('Response is missing records.');
+
+    return responseJson['records'].map<AirtableRecord>((record) => AirtableRecord.fromJSON(record)).toList();
+  }
+
   /// Returns a list of updated AirtableRecords
   ///
   /// [Returns empty if update is not successful]
