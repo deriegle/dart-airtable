@@ -41,4 +41,4 @@ dart example/dart_airtable_example.dart
 
 Please file feature requests and bugs at the [issue tracker][tracker].
 
-[tracker]: http://github.com/deriegle/dart-airtable/issues
+[tracker]: https://github.com/deriegle/dart-airtable/issues

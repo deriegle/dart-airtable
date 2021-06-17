@@ -1,3 +1,8 @@
+### 1.0.0
+
+- Converted project to null safety
+- Upgraded the minimum SDK to 2.12.0
+
 ### 0.1.2
 
 - Fixed bug in create and update serialization
