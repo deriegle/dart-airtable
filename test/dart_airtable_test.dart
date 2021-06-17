@@ -11,7 +11,7 @@ const MOCK_PROJECT_BASE = 'abcdefg';
 
 void main() {
   group('Airtable', () {
-    Airtable airtable;
+    late Airtable airtable;
 
     setUp(() {
       airtable = Airtable(apiKey: MOCK_API_KEY, projectBase: MOCK_PROJECT_BASE);
@@ -74,17 +74,17 @@ void main() {
         expect(records.first.id, 'abcdefg');
         expect(records.first.createdTime, isNotNull);
         expect(records.first.fields, hasLength(3));
-        expect(records.first.getField('Name').value, 'Giant Eagle');
-        expect(records.first.getField('Amount').value, 25.35);
-        expect(records.first.getField('Date of Transaction').value, isNotNull);
+        expect(records.first.getField('Name')!.value, 'Giant Eagle');
+        expect(records.first.getField('Amount')!.value, 25.35);
+        expect(records.first.getField('Date of Transaction')!.value, isNotNull);
 
         expect(records.last, isA<AirtableRecord>());
         expect(records.last.id, '12345');
         expect(records.last.createdTime, isNotNull);
         expect(records.last.fields, hasLength(3));
-        expect(records.last.getField('Name').value, 'Kroger');
-        expect(records.last.getField('Amount').value, 53.35);
-        expect(records.last.getField('Date of Transaction').value, isNotNull);
+        expect(records.last.getField('Name')!.value, 'Kroger');
+        expect(records.last.getField('Amount')!.value, 53.35);
+        expect(records.last.getField('Date of Transaction')!.value, isNotNull);
       });
     });
 
@@ -120,13 +120,13 @@ void main() {
 
         var record = await airtable.getRecord('Transactions', '1234');
 
-        expect(record, isNotNull);
+        expect(record!, isNotNull);
         expect(record, isA<AirtableRecord>());
         expect(record.id, '1234');
         expect(record.createdTime, isNotNull);
-        expect(record.getField('Name').value, 'Giant Eagle');
-        expect(record.getField('Amount').value, 25.35);
-        expect(record.getField('Date of Transaction').value, isNotNull);
+        expect(record.getField('Name')!.value, 'Giant Eagle');
+        expect(record.getField('Amount')!.value, 25.35);
+        expect(record.getField('Date of Transaction')!.value, isNotNull);
       });
     });
 
@@ -170,12 +170,12 @@ void main() {
         expect(records.first, isA<AirtableRecord>());
         expect(records.first.id, isNotNull);
         expect(records.first.fields, hasLength(1));
-        expect(records.first.getField('Name').value, 'Giant Eagle');
+        expect(records.first.getField('Name')!.value, 'Giant Eagle');
 
         expect(records.last, isA<AirtableRecord>());
         expect(records.last.id, isNotNull);
         expect(records.last.fields, hasLength(1));
-        expect(records.last.getField('Name').value, 'Kroger');
+        expect(records.last.getField('Name')!.value, 'Kroger');
       });
 
       test('it handles errors', () async {
@@ -232,14 +232,14 @@ void main() {
         var record = AirtableRecord(fields: [
           AirtableRecordField(fieldName: 'Name', value: 'Giant Eagle'),
         ]);
-        AirtableRecord savedRecord =
-            await airtable.createRecord('Transactions', record);
+        var savedRecord = await airtable.createRecord('Transactions', record);
 
+        expect(savedRecord!, isNotNull);
         expect(savedRecord, isA<AirtableRecord>());
         expect(savedRecord.id, isNotNull);
         expect(savedRecord.createdTime, isNotNull);
         expect(savedRecord.fields, hasLength(1));
-        expect(savedRecord.getField('Name').value, 'Giant Eagle');
+        expect(savedRecord.getField('Name')!.value, 'Giant Eagle');
       });
 
       test('it handles errors', () async {
@@ -298,7 +298,7 @@ void main() {
           ],
         );
 
-        record1.getField('Name').value = 'Kroger';
+        record1.getField('Name')!.value = 'Kroger';
 
         List<AirtableRecord> updatedRecords =
             await airtable.updateRecords('Transactions', [record1, record2]);
@@ -308,12 +308,12 @@ void main() {
         expect(updatedRecords.first.id, record1.id);
         expect(updatedRecords.first.createdTime, record1.createdTime);
         expect(updatedRecords.first.fields, hasLength(1));
-        expect(updatedRecords.first.getField('Name').value, 'Kroger');
+        expect(updatedRecords.first.getField('Name')!.value, 'Kroger');
         expect(updatedRecords.last, isA<AirtableRecord>());
         expect(updatedRecords.last.id, record2.id);
         expect(updatedRecords.last.createdTime, record2.createdTime);
         expect(updatedRecords.last.fields, hasLength(1));
-        expect(updatedRecords.last.getField('Name').value, 'Giant Eagle');
+        expect(updatedRecords.last.getField('Name')!.value, 'Giant Eagle');
       });
 
       test('it handles errors', () async {
@@ -346,8 +346,8 @@ void main() {
     group('deleteRecords', () {
       test('it deletes the given records', () async {
         airtable.client = MockClient((Request req) async {
-          List<String> recordIds =
-              List<String>.from(jsonDecode(req.url.queryParameters['records']));
+          List<String> recordIds = List<String>.from(
+              jsonDecode(req.url.queryParameters['records']!));
           expect(req.method, 'DELETE');
 
           return Response(
@@ -366,7 +366,7 @@ void main() {
         var record1 = AirtableRecord(id: '12345', fields: []);
         var record2 = AirtableRecord(id: 'abcdef', fields: []);
 
-        List<String> deletedRecords =
+        List<String?> deletedRecords =
             await airtable.deleteRecords('Transactions', [record1, record2]);
 
         expect(deletedRecords, hasLength(2));
@@ -376,8 +376,8 @@ void main() {
 
       test('it only returns ids of the delete records', () async {
         airtable.client = MockClient((Request req) async {
-          List<String> recordIds =
-              List<String>.from(jsonDecode(req.url.queryParameters['records']));
+          List<String> recordIds = List<String>.from(
+              jsonDecode(req.url.queryParameters['records']!));
           expect(req.method, 'DELETE');
 
           return Response(
@@ -396,7 +396,7 @@ void main() {
         var record1 = AirtableRecord(id: '12345', fields: []);
         var record2 = AirtableRecord(id: 'abcdef', fields: []);
 
-        List<String> deletedRecords =
+        List<String?> deletedRecords =
             await airtable.deleteRecords('Transactions', [record1, record2]);
 
         expect(deletedRecords, isEmpty);

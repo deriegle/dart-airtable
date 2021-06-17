@@ -1,13 +1,13 @@
 part of dart_airtable;
 
-class AirtableRecordField<T> {
+class AirtableRecordField<T extends Object> {
   String fieldName;
   T value;
 
   AirtableRecordField({
-    @required this.fieldName,
-    @required this.value,
-  }) : assert(value.runtimeType != T);
+    required this.fieldName,
+    required this.value,
+  });
 
   Map<String, String> toJSON() => {fieldName: _valueToJSON};
 
@@ -22,13 +22,9 @@ class AirtableRecordField<T> {
 
   String get _valueToJSON {
     if (value.runtimeType == DateTime) {
-      return (value as DateTime)?.toIso8601String();
+      return (value as DateTime).toIso8601String();
     }
 
-    return value?.toString();
+    return value.toString();
   }
-}
-
-void hi() {
-  AirtableRecordField<dynamic>.fromMapEntry(MapEntry('hi', 'hi'));
 }

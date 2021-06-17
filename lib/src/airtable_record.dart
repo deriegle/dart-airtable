@@ -1,19 +1,18 @@
 part of dart_airtable;
 
 class AirtableRecord {
-  final String id;
-  final DateTime createdTime;
+  final String? id;
+  final DateTime? createdTime;
   List<AirtableRecordField> fields = [];
 
   AirtableRecord({
-    @required this.fields,
+    required this.fields,
     this.createdTime,
     this.id,
   });
 
-  AirtableRecordField getField(String fieldName) => fields.firstWhere(
+  AirtableRecordField? getField(String fieldName) => fields.firstWhereOrNull(
         (f) => f.fieldName == fieldName,
-        orElse: () => null,
       );
 
   Map<String, dynamic> toJSON() {
