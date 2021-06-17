@@ -3,7 +3,6 @@
 /// More dartdocs go here.
 library dart_airtable;
 
-import 'package:collection/collection.dart' show IterableExtension;
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'dart:convert' show jsonEncode, jsonDecode;

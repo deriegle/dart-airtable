@@ -1,5 +1,14 @@
 part of dart_airtable;
 
+extension FirstWhereOrNull<T> on Iterable<T> {
+  T? firstWhereOrNull(bool Function(T element) test) {
+    for (var element in this) {
+      if (test(element)) return element;
+    }
+    return null;
+  }
+}
+
 class AirtableRecord {
   final String? id;
   final DateTime? createdTime;
@@ -11,9 +20,8 @@ class AirtableRecord {
     this.id,
   });
 
-  AirtableRecordField? getField(String fieldName) => fields.firstWhereOrNull(
-        (f) => f.fieldName == fieldName,
-      );
+  AirtableRecordField? getField(String fieldName) =>
+      fields.firstWhereOrNull((f) => f.fieldName == fieldName);
 
   Map<String, dynamic> toJSON() {
     if (id == null) {
