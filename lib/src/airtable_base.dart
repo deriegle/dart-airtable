@@ -100,8 +100,8 @@ class Airtable {
   ///
   /// [Returns nullable Future]
   Future<AirtableRecord> getRecord(String recordName, String recordId) async {
-    final response = await client.get('${_recordApiUrl(recordName)}/$recordId',
-        headers: _headers);
+    final response = await client
+        .get(_recordApiUrl(recordName, path: '/$recordId'), headers: _headers);
 
     if (response.statusCode == HttpStatus.notFound ||
         response.body == null ||
@@ -115,16 +115,30 @@ class Airtable {
   }
 
   /// Get records based on the filtering formula supplied as defined by [Airtable API](https://support.airtable.com/hc/en-us/articles/203255215-Formula-Field-Reference)
-  /// 
+  ///
   /// [Returns Future or throws exception]
-  Future<List<AirtableRecord>> getRecordsFilterByFormula(String recordName, String filter) async {
-    final response = await client.get('${_recordApiUrl(recordName)}?filterByFormula=$filter', headers: _headers);
+  Future<List<AirtableRecord>> getRecordsFilterByFormula(
+      String recordName, String filter) async {
+    final response = await client.get(
+      _recordApiUrl(recordName, queryParams: {
+        'filterByFormula': filter,
+      }),
+      headers: _headers,
+    );
 
     Map<String, dynamic> responseJson = jsonDecode(response.body);
-    if(responseJson.containsKey('error')) throw Exception("${responseJson['error']['type']}::${responseJson['error']['message']}");
-    if(!responseJson.containsKey('records')) throw Exception('Response is missing records.');
+    if (responseJson.containsKey('error')) {
+      throw Exception(
+          "${responseJson['error']['type']}::${responseJson['error']['message']}");
+    }
 
-    return responseJson['records'].map<AirtableRecord>((record) => AirtableRecord.fromJSON(record)).toList();
+    if (!responseJson.containsKey('records')) {
+      throw Exception('Response is missing records.');
+    }
+
+    return responseJson['records']
+        .map<AirtableRecord>((record) => AirtableRecord.fromJSON(record))
+        .toList();
   }
 
   /// Returns a list of updated AirtableRecords
@@ -185,13 +199,10 @@ class Airtable {
   /// [Returns List of ids]
   Future<List<String>> deleteRecords(
       String recordName, List<AirtableRecord> records) async {
-    final params = Map.fromIterable(
-      records,
-      key: (record) => 'records[]',
-      value: (record) => record.id as String,
-    );
+    final params = {for (var record in records) 'records[]': record.id};
+
     final response = await client.delete(
-      _recordApiUrl(recordName, params),
+      _recordApiUrl(recordName, queryParams: params),
       headers: _headers,
     );
 
@@ -212,9 +223,11 @@ class Airtable {
         .toList();
   }
 
-  Uri _recordApiUrl(String recordName, [Map<String, String> queryParams]) {
+  Uri _recordApiUrl(String recordName,
+      {String path, Map<String, String> queryParams}) {
     var url = apiUrl.replaceAll(RegExp('^https?:\/\/'), '');
-    return Uri.https(url, '/v0/${projectBase}/${recordName}', queryParams);
+    final fullPath = '/v0/$projectBase/$recordName${path ?? ''}';
+    return Uri.https(url, fullPath, queryParams);
   }
 
   Map<String, String> get _headers => {
