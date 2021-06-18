@@ -3,8 +3,8 @@ part of dart_airtable;
 const _defaultAirtableApiUrl = 'https://api.airtable.com';
 
 class Airtable {
-  final String? apiKey;
-  final String? projectBase;
+  final String apiKey;
+  final String projectBase;
   final String apiUrl;
   http.Client client;
 
@@ -19,7 +19,7 @@ class Airtable {
   ///
   /// [Returns List of updated records]
   Future<List<AirtableRecord>> getAllRecords(
-    String? recordName, {
+    String recordName, {
     int? maxRecords,
     int? pageSize,
   }) async {
@@ -73,7 +73,7 @@ class Airtable {
     );
 
     if (response.body.isEmpty ||
-        response.statusCode == HttpStatus.unprocessableEntity) {
+        response.statusCode == HttpStatus.unprocessableEntity.code) {
       return [];
     }
 
@@ -102,7 +102,8 @@ class Airtable {
     final response = await client
         .get(_recordApiUrl(recordName, path: '/$recordId'), headers: _headers);
 
-    if (response.statusCode == HttpStatus.notFound || response.body.isEmpty) {
+    if (response.statusCode == HttpStatus.notFound.code ||
+        response.body.isEmpty) {
       return null;
     }
 
@@ -115,7 +116,9 @@ class Airtable {
   ///
   /// [Returns Future or throws exception]
   Future<List<AirtableRecord>?> getRecordsFilterByFormula(
-      String recordName, String filter) async {
+    String recordName,
+    String filter,
+  ) async {
     final response = await client.get(
       _recordApiUrl(recordName, queryParams: {
         'filterByFormula': filter,
@@ -126,7 +129,8 @@ class Airtable {
     Map<String, dynamic> responseJson = jsonDecode(response.body);
     if (responseJson.containsKey('error')) {
       throw Exception(
-          "${responseJson['error']['type']}::${responseJson['error']['message']}");
+        "${responseJson['error']['type']}::${responseJson['error']['message']}",
+      );
     }
 
     if (!responseJson.containsKey('records')) {
@@ -142,8 +146,10 @@ class Airtable {
   ///
   /// [Returns empty if update is not successful]
   Future<List<AirtableRecord>> updateRecords(
-      String recordName, List<AirtableRecord> records,
-      {bool typecast = false}) async {
+    String recordName,
+    List<AirtableRecord> records, {
+    bool typecast = false,
+  }) async {
     final body = {
       'records': records.map((record) => record.toJSON()).toList(),
       'typecast': typecast,
@@ -155,7 +161,7 @@ class Airtable {
       body: jsonEncode(body),
     );
 
-    if (response.statusCode == HttpStatus.unprocessableEntity) {
+    if (response.statusCode == HttpStatus.unprocessableEntity.code) {
       return [];
     }
 
@@ -180,8 +186,11 @@ class Airtable {
   /// Updates a single AirtableRecord
   ///
   /// [Returns null if unsuccessful]
-  Future<AirtableRecord?> updateRecord(String recordName, AirtableRecord record,
-      {bool typecast = false}) async {
+  Future<AirtableRecord?> updateRecord(
+    String recordName,
+    AirtableRecord record, {
+    bool typecast = false,
+  }) async {
     final records = await updateRecords(
       recordName,
       [record],
@@ -194,7 +203,9 @@ class Airtable {
   ///
   /// [Returns List of ids]
   Future<List<String?>> deleteRecords(
-      String recordName, List<AirtableRecord> records) async {
+    String recordName,
+    List<AirtableRecord> records,
+  ) async {
     final params = {for (var record in records) 'records[]': record.id};
 
     final response = await client.delete(
@@ -219,8 +230,11 @@ class Airtable {
         .toList();
   }
 
-  Uri _recordApiUrl(String? recordName,
-      {String? path, Map<String, String?>? queryParams}) {
+  Uri _recordApiUrl(
+    String recordName, {
+    String? path,
+    Map<String, String?>? queryParams,
+  }) {
     var url = apiUrl.replaceAll(RegExp('^https?:\/\/'), '');
     final fullPath = '/v0/$projectBase/$recordName${path ?? ''}';
     return Uri.https(url, fullPath, queryParams);

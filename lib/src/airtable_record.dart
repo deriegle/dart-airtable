@@ -24,16 +24,15 @@ class AirtableRecord {
       fields.firstWhereOrNull((f) => f.fieldName == fieldName);
 
   Map<String, dynamic> toJSON() {
-    if (id == null) {
-      return <String, dynamic>{
-        'fields': _jsonFields,
-      };
-    } else {
-      return <String, dynamic>{
-        'fields': _jsonFields,
-        'id': id,
-      };
+    Map<String, dynamic> result = {
+      'fields': _jsonFields,
+    };
+
+    if (id != null) {
+      result['id'] = id;
     }
+
+    return result;
   }
 
   factory AirtableRecord.fromJSON(Map<String, dynamic> json) {
@@ -50,12 +49,16 @@ class AirtableRecord {
 
   @override
   String toString() {
-    return 'AirtableRecord(id: $id, createdTime: ${createdTime.toString()}, fields: ${_jsonFields.toString()})';
+    if (id != null && createdTime != null) {
+      return 'AirtableRecord(id: $id, createdTime: $createdTime, fields: $_jsonFields)';
+    } else {
+      return 'AirtableRecord(fields: $_jsonFields)';
+    }
   }
 
   Map<String, dynamic> get _jsonFields {
-    return {}..addEntries(
-        fields.map<MapEntry<String, dynamic>>((f) => f.toMapEntry()).toList(),
-      );
+    return Map.fromEntries(
+      fields.map<MapEntry<String, dynamic>>((f) => f.toMapEntry()).toList(),
+    );
   }
 }
