@@ -1,6 +1,6 @@
 name: dart_airtable
 description: Dart library for working and interacting with the Airtable API 
-version: 1.0.0
+version: 1.1.0
 homepage: https://www.github.com/deriegle/dart-airtable
 
 environment:

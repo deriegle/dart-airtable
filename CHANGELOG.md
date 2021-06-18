@@ -1,3 +1,8 @@
+### 1.1.0
+
+- Removed usage of dart:io to open this package to be used with JS
+- Cleaned up some nullable fields
+
 ### 1.0.0
 
 - Converted project to null safety
