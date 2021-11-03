@@ -17,32 +17,50 @@ class Airtable {
 
   /// Gets a List of AirtableRecords from Airtable based on the record name
   ///
-  /// [Returns List of updated records]
-  Future<List<AirtableRecord>> getAllRecords(
+  /// [Returns List of updated records and next offset]
+  Future<AirtableRecordsResponse> getAllRecords(
     String recordName, {
     int? maxRecords,
     int? pageSize,
+    String? offset,
   }) async {
+    final queryParams = <String, String>{};
+    if (maxRecords != null) {
+      queryParams['maxRecords'] = maxRecords.toString();
+    }
+
+    if (pageSize != null) {
+      queryParams['pageSize'] = pageSize.toString();
+    }
+
+    if (offset != null) {
+      queryParams['offset'] = offset;
+    }
+
     final response = await client.get(
-      _recordApiUrl(recordName),
+      _recordApiUrl(recordName, queryParams: queryParams),
       headers: _headers,
     );
 
     Map<String, dynamic>? body = jsonDecode(response.body);
     if (body == null) {
-      return [];
+      return AirtableRecordsResponse([], null);
     }
 
     final records = List<Map<String, dynamic>>.from(body['records']);
+    final nextOffset = body['offset'];
 
     if (records.isEmpty) {
-      return [];
+      return AirtableRecordsResponse([], nextOffset);
     }
 
-    return records
-        .map<AirtableRecord>(
-            (Map<String, dynamic> record) => AirtableRecord.fromJSON(record))
-        .toList();
+    return AirtableRecordsResponse(
+      records
+          .map<AirtableRecord>(
+              (Map<String, dynamic> record) => AirtableRecord.fromJSON(record))
+          .toList(),
+      nextOffset,
+    );
   }
 
   /// Creates a new AirtableRecord in Airtable based on a given AirtableRecord
