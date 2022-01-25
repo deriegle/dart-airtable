@@ -9,6 +9,13 @@ extension FirstWhereOrNull<T> on Iterable<T> {
   }
 }
 
+class AirtableRecordsResponse {
+  List<AirtableRecord> records = [];
+  String? offset;
+
+  AirtableRecordsResponse(this.records, this.offset);
+}
+
 class AirtableRecord {
   final String? id;
   final DateTime? createdTime;

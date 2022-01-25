@@ -67,7 +67,7 @@ void main() {
           ),
         );
 
-        var records = await airtable.getAllRecords('Transactions');
+        var records = (await airtable.getAllRecords('Transactions')).records;
 
         expect(records, hasLength(2));
         expect(records.first, isA<AirtableRecord>());
@@ -85,6 +85,37 @@ void main() {
         expect(records.last.getField('Name')!.value, 'Kroger');
         expect(records.last.getField('Amount')!.value, 53.35);
         expect(records.last.getField('Date of Transaction')!.value, isNotNull);
+      });
+
+      test('it returns the records with paging offset', () async {
+        airtable.client = MockClient(
+          (Request req) async => Response(
+            jsonEncode({
+              'records': [
+                {
+                  'id': 'abcdefg',
+                  'createdTime': DateTime.now().toIso8601String(),
+                  'fields': {
+                    'Name': 'Giant Eagle',
+                    'Amount': 25.35,
+                    'Date of Transaction': DateTime.now()
+                        .subtract(Duration(days: 2))
+                        .toIso8601String(),
+                  },
+                },
+              ],
+              'offset': 'abc'
+            }),
+            200,
+          ),
+        );
+
+        final response =
+            await airtable.getAllRecords('Transactions', pageSize: 1);
+        final records = response.records;
+        final nextOffset = response.offset;
+        expect(records, hasLength(1));
+        expect(nextOffset, isNotNull);
       });
     });
 

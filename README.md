@@ -15,7 +15,10 @@ void main() async {
   final recordName = 'Tasks';
 
   var airtable = Airtable(apiKey: apiKey, projectBase: projectBase);
-  var records = await airtable.getAllRecords(recordName);
+  // default pageSize is 100
+  var response = await airtable.getAllRecords(recordName); 
+  var records = response.records;
+  var offset = response.offset; // next page offset
 
   print(records);
 }
