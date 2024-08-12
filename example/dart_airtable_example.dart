@@ -1,8 +1,8 @@
 import 'package:dart_airtable/dart_airtable.dart';
-import 'package:dotenv/dotenv.dart' as dotenv;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
-  dotenv.load();
+  await dotenv.load();
 
   String apiKey = dotenv.env['AIRTABLE_API_KEY']!;
   String projectBase = dotenv.env['AIRTABLE_PROJECT_BASE']!;

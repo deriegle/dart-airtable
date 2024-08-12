@@ -20,11 +20,13 @@ class AirtableRecordField<T extends Object> {
         value: mapEntry.value,
       );
 
-  String get _valueToJSON {
+  dynamic get _valueToJSON {
     if (value.runtimeType == DateTime) {
       return (value as DateTime).toIso8601String();
     }
-
+    if (value is int) {
+      return value;
+    }
     return value.toString();
   }
 }
